@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sparta Store v1 | Sistema de Aquisição</title>
+    
+    <!-- Fontes de Alta Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE SYSTEM VARIABLES
+           ========================================= */
+        :root {
+            /* Paleta de Cores (Fogo & Cyber) */
+            --bg-base: #030000;
+            --bg-surface: #0a0100;
+            --bg-modal: rgba(5, 1, 0, 0.95);
+            
+            --color-primary: #d91604;   /* Vermelho Sangue */
+            --color-secondary: #f25c05; /* Laranja Lava */
+            --color-accent: #f2b705;    /* Amarelo Brasa */
+            
+            --text-high: #ffffff;
+            --text-medium: #b39f98;
+            --text-low: #665550;
+            
+            /* Tipografia */
+            --font-display: 'Orbitron', sans-serif;
+            --font-body: 'Rajdhani', sans-serif;
+            
+            /* Geometria CSS (Recortes) */
+            --clip-card: polygon(25px 0, 100% 0, 100% calc(100% - 25px), calc(100% - 25px) 100%, 0 100%, 0 25px);
+            --clip-btn: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+            
+            /* Transições */
+            --transition-smooth: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            --transition-fast: all 0.2s ease-in-out;
+        }
+
+        /* =========================================
+           2. RESET & BASE SETUP
+           ========================================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-high);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Engine Gráfica de Fundo */
+        #fx-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 120%, #1a0200 0%, #030000 80%);
+        }
+
+        /* =========================================
+           3. ESTRUTURA DE NAVEGAÇÃO (TOP BAR)
+           ========================================= */
+        .top-nav {
+            width: 100%;
+            height: 80px;
+            display: flex;
+            justify-content: flex-end; /* Alinha o conteúdo à direita */
+            align-items: center;
+            padding: 0 50px;
+            position: relative;
+            z-index: 10;
+            border-bottom: 1px solid rgba(217, 22, 4, 0.2);
+            background: linear-gradient(180deg, rgba(10, 1, 0, 0.8) 0%, transparent 100%);
+        }
+
+        .top-nav::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            right: 0;
+            width: 30%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--color-primary), var(--color-accent));
+        }
+
+        .brand-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            line-height: 1.1;
+        }
+
+        .brand-highlight {
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: 6px;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(242, 92, 5, 0.3);
+            animation: pulseGlow 4s infinite alternate;
+        }
+
+        .brand-subtext {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-medium);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        /* =========================================
+           4. GRID DE PRODUTOS & CARDS
+           ========================================= */
+        .store-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 60px 20px;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 350px));
+            gap: 40px;
+            width: 100%;
+            max-width: 1200px;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        .product-card {
+            background: var(--bg-surface);
+            clip-path: var(--clip-card);
+            border-left: 2px solid var(--color-primary);
+            border-bottom: 2px solid var(--color-secondary);
+            display: flex;
+            flex-direction: column;
+            padding: 35px 30px;
+            min-height: 480px; /* Garante altura uniforme */
+            transition: var(--transition-smooth);
+            position: relative;
+            opacity: 0;
+            transform: translateY(40px);
+            animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Delay em cascata na animação de entrada */
+        .product-card:nth-child(1) { animation-delay: 0.1s; }
+        .product-card:nth-child(2) { animation-delay: 0.25s; }
+        .product-card:nth-child(3) { animation-delay: 0.4s; }
+
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(217, 22, 4, 0.05) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            border-left-color: var(--color-accent);
+            border-bottom-color: var(--color-accent);
+            box-shadow: 0 15px 35px rgba(242, 92, 5, 0.15);
+        }
+
+        /* Divisão Interna do Card para Organização Perfeita */
+        .card-inner {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* Ocupa todo o espaço para o flexbox empurrar o footer */
+        }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .icon-wrapper {
+            font-size: 3rem;
+            color: var(--color-secondary);
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 8px var(--color-primary));
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--text-high);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .card-divider {
+            height: 1px;
+            width: 50%;
+            margin: 15px auto 20px auto;
+            background: linear-gradient(90deg, transparent, var(--color-low), transparent);
+            border-bottom: 1px solid rgba(242, 92, 5, 0.2);
+        }
+
+        .card-body {
+            text-align: center;
+            flex-grow: 1; /* Ocupa o espaço vazio empurrando o footer para baixo */
+        }
+
+        .card-desc {
+            font-size: 1.1rem;
+            color: var(--text-medium);
+            line-height: 1.5;
+        }
+
+        .card-footer {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .price-tag {
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--color-accent);
+            margin-bottom: 25px;
+            text-shadow: 0 0 15px rgba(242, 183, 5, 0.2);
+        }
+
+        /* =========================================
+           5. COMPONENTES DE INTERAÇÃO (BOTÕES)
+           ========================================= */
+        .btn-action {
+            width: 100%;
+            background: transparent;
+            color: var(--color-secondary);
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 16px 20px;
+            border: 1px solid var(--color-secondary);
+            clip-path: var(--clip-btn);
+            cursor: pointer;
+            position: relative;
+            transition: var(--transition-fast);
+            outline: none;
+        }
+
+        .btn-action::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(242, 92, 5, 0.2), transparent);
+            transition: all 0.4s;
+        }
+
+        .btn-action:hover {
+            background: rgba(242, 92, 5, 0.08);
+            color: var(--color-accent);
+            border-color: var(--color-accent);
+            box-shadow: 0 0 15px rgba(242, 92, 5, 0.3);
+        }
+
+        .btn-action:hover::before { left: 100%; }
+
+        .btn-solid {
+            background: var(--color-primary);
+            color: var(--text-high);
+            border: none;
+        }
+
+        .btn-solid:hover {
+            background: var(--color-secondary);
+            box-shadow: 0 0 25px rgba(242, 92, 5, 0.6);
+            color: var(--text-high);
+        }
+
+        /* =========================================
+           6. SISTEMA DE MODAL (CHECKOUT ORGANIZADO)
+           ========================================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(2, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-wrapper {
+            background: var(--bg-modal);
+            border: 1px solid rgba(217, 22, 4, 0.3);
+            border-left: 3px solid var(--color-primary);
+            border-right: 3px solid var(--color-secondary);
+            clip-path: polygon(30px 0, 100% 0, 100% calc(100% - 30px), calc(100% - 30px) 100%, 0 100%, 0 30px);
+            width: 90%;
+            max-width: 500px;
+            padding: 40px;
+            transform: scale(0.95) translateY(10px);
+            transition: var(--transition-smooth);
+            position: relative;
+        }
+
+        .modal-overlay.active .modal-wrapper {
+            transform: scale(1) translateY(0);
+        }
+
+        .btn-close {
+            position: absolute;
+            top: 15px; right: 20px;
+            font-size: 1.5rem;
+            color: var(--text-low);
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .btn-close:hover { color: var(--color-primary); }
+
+        /* Rastreador de Progresso do Modal */
+        .modal-tracker {
+            font-size: 0.8rem;
+            color: var(--color-secondary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 10px;
+        }
+
+        .step-container {
+            display: none;
+            animation: fadeIn 0.4s forwards;
+        }
+
+        .step-container.active { display: block; }
+
+        .modal-heading {
+            font-family: var(--font-display);
+            color: var(--text-high);
+            margin: 20px 0;
+            font-size: 1.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Displays de Dados no Modal */
+        .data-display {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .data-label {
+            font-size: 0.85rem;
+            color: var(--text-medium);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .data-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-high);
+        }
+
+        .price-final {
+            font-family: var(--font-display);
+            font-size: 2.8rem;
+            color: var(--color-accent);
+            text-align: center;
+            margin: 15px 0 25px 0;
+            text-shadow: 0 0 15px rgba(242, 183, 5, 0.1);
+        }
+
+        /* Seção do Terminal (Desconto) */
+        .terminal-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .terminal-input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--text-low);
+            color: var(--color-accent);
+            padding: 12px 15px;
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            clip-path: var(--clip-btn);
+            outline: none;
+            text-transform: uppercase;
+            transition: var(--transition-fast);
+        }
+
+        .terminal-input:focus { border-color: var(--color-secondary); }
+        .terminal-input::placeholder { color: var(--text-low); }
+
+        .terminal-btn {
+            background: transparent;
+            color: var(--text-high);
+            border: 1px solid var(--color-primary);
+            padding: 0 20px;
+            font-family: var(--font-display);
+            font-weight: bold;
+            cursor: pointer;
+            clip-path: var(--clip-btn);
+            transition: var(--transition-fast);
+        }
+        
+        .terminal-btn:hover { background: var(--color-primary); }
+
+        .terminal-msg {
+            font-size: 0.85rem;
+            text-align: center;
+            min-height: 20px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        /* Formulário Flutuante Padrão */
+        .form-group {
+            position: relative;
+            margin-bottom: 35px;
+            margin-top: 15px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 18px 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--text-low);
+            clip-path: var(--clip-btn);
+            color: var(--color-accent);
+            font-size: 1.1rem;
+            font-family: var(--font-body);
+            font-weight: 600;
+            outline: none;
+            transition: var(--transition-fast);
+        }
+
+        .form-input:focus {
+            border-color: var(--color-secondary);
+            background: rgba(242, 92, 5, 0.05);
+        }
+
+        .form-label {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-medium);
+            pointer-events: none;
+            transition: var(--transition-fast);
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+        }
+
+        .form-input:focus + .form-label,
+        .form-input:valid + .form-label {
+            top: -12px;
+            left: 15px;
+            font-size: 0.8rem;
+            background: var(--bg-modal);
+            padding: 0 8px;
+            color: var(--color-secondary);
+        }
+
+        .method-badge {
+            display: inline-block;
+            background: rgba(217, 22, 4, 0.1);
+            border: 1px solid var(--color-primary);
+            color: var(--color-primary);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        /* =========================================
+           7. ANIMAÇÕES GERAIS
+           ========================================= */
+        @keyframes slideUpFade {
+            0% { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes pulseGlow {
+            from { text-shadow: 0 0 5px rgba(242, 92, 5, 0.2); }
+            to { text-shadow: 0 0 20px rgba(242, 183, 5, 0.6); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- LAYER 0: ENGINE GRÁFICA DE PARTÍCULAS -->
+    <canvas id="fx-canvas"></canvas>
+
+    <!-- LAYER 1: BARRA DE NAVEGAÇÃO SUPERIOR -->
+    <nav class="top-nav">
+        <div class="brand-container">
+            <span class="brand-highlight">SPARTA</span>
+            <span class="brand-subtext">Store v1</span>
+        </div>
+    </nav>
+
+    <!-- LAYER 2: GRID DE EXIBIÇÃO DE PRODUTOS -->
+    <main class="store-container">
+        <section class="product-grid">
+            
+            <!-- PRODUTO: PACK 1 -->
+            <article class="product-card">
+                <div class="card-inner">
+                    <header class="card-header">
+                        <div class="icon-wrapper">&#10022; &#9876;</div>
+                        <h2 class="card-title">Pack 1</h2>
+                    </header>
+                    <div class="card-divider"></div>
+                    <div class="card-body">
+                        <p class="card-desc">Full Diamond<br>+ Enchanted Golden Apple.</p>
+                    </div>
+                    <footer class="card-footer">
+                        <div class="price-tag">R$ 4,50</div>
+                        <button class="btn-action" onclick="sysStore.iniciarFluxo('Pack 1', 4.50)">Inicializar</button>
+                    </footer>
+                </div>
+            </article>
+
+            <!-- PRODUTO: PACK 2 -->
+            <article class="product-card">
+                <div class="card-inner">
+                    <header class="card-header">
+                        <div class="icon-wrapper">&#10022; &#9876; &#10022;</div>
+                        <h2 class="card-title">Pack 2</h2>
+                    </header>
+                    <div class="card-divider"></div>
+                    <div class="card-body">
+                        <p class="card-desc">Full Netherite<br>+ Enchanted Golden Apple.</p>
+                    </div>
+                    <footer class="card-footer">
+                        <div class="price-tag">R$ 7,99</div>
+                        <button class="btn-action" onclick="sysStore.iniciarFluxo('Pack 2', 7.99)">Ascensão</button>
+                    </footer>
+                </div>
+            </article>
+
+            <!-- PRODUTO: PACK 3 -->
+            <article class="product-card">
+                <div class="card-inner">
+                    <header class="card-header">
+                        <div class="icon-wrapper">&#9889; &#8734; &#9889;</div>
+                        <h2 class="card-title">Pack 3</h2>
+                    </header>
+                    <div class="card-divider"></div>
+                    <div class="card-body">
+                        <p class="card-desc">15 Segundos no Modo Criativo Absoluto.</p>
+                    </div>
+                    <footer class="card-footer">
+                        <div class="price-tag">R$ 18,99</div>
+                        <button class="btn-action" onclick="sysStore.iniciarFluxo('Pack 3', 18.99)">Onipotência</button>
+                    </footer>
+                </div>
+            </article>
+
+        </section>
+    </main>
+
+    <!-- LAYER 3: INTERFACE DE CHECKOUT (MODAL) -->
+    <div class="modal-overlay" id="ui-modal">
+        <div class="modal-wrapper">
+            <span class="btn-close" onclick="sysStore.encerrarFluxo()">&#10005;</span>
+
+            <!-- ETAPA 1: VALIDAÇÃO DE CARRINHO E CÓDIGOS -->
+            <div class="step-container active" id="view-step-1">
+                <div class="modal-tracker">
+                    <span>Etapa 1 / 2</span>
+                    <span>Configuração de Pacote</span>
+                </div>
+                
+                <h3 class="modal-heading">Revisão de Pedido</h3>
+                
+                <div class="data-display">
+                    <div class="data-label">Identificação do Item</div>
+                    <div class="data-value" id="display-nome-pacote">-</div>
+                </div>
+                
+                <div class="price-final" id="display-preco-final">R$ 0,00</div>
+
+                <div class="terminal-group">
+                    <input type="text" class="terminal-input" id="input-cupom" placeholder="Insira seu Override Code" autocomplete="off">
+                    <button class="terminal-btn" onclick="sysStore.processarCupom()">Aplicar</button>
+                </div>
+                <div class="terminal-msg" id="msg-retorno-cupom"></div>
+
+                <button class="btn-action btn-solid" onclick="sysStore.navegarPara(2)">Prosseguir para Integração</button>
+            </div>
+
+            <!-- ETAPA 2: IDENTIDADE E MÉTODO DE PAGAMENTO -->
+            <div class="step-container" id="view-step-2">
+                <div class="modal-tracker">
+                    <span>Etapa 2 / 2</span>
+                    <span>Sincronização de Dados</span>
+                </div>
+
+                <h3 class="modal-heading">Credenciais de Rede</h3>
+                
+                <div style="text-align: center;">
+                    <span class="method-badge">MÉTODO TRAVADO: PIX</span>
+                </div>
+
+                <div class="form-group">
+                    <input type="text" class="form-input" id="input-nickname" required autocomplete="off">
+                    <label class="form-label">Seu Nickname Exato no Servidor</label>
+                </div>
+
+                <button class="btn-action btn-solid" id="btn-concluir" onclick="sysStore.gerarContrato()">Confirmar e Redirecionar via WhatsApp</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SCRIPTS CORE -->
+    <script>
+        /**
+         * -------------------------------------------------------------
+         * MÓDULO 1: ENGINE DE PARTÍCULAS (RENDERIZAÇÃO DE FOGO)
+         * -------------------------------------------------------------
+         */
+        const fxCanvas = document.getElementById('fx-canvas');
+        const ctx = fxCanvas.getContext('2d');
+        let fireParticles = [];
+
+        function resizeCanvas() {
+            fxCanvas.width = window.innerWidth;
+            fxCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Ember {
+            constructor() {
+                this.x = Math.random() * fxCanvas.width;
+                this.y = fxCanvas.height + Math.random() * 100;
+                this.size = Math.random() * 3 + 1;
+                this.speedY = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 1;
+                this.opacity = Math.random() * 0.8 + 0.2;
+                
+                const coresFogo = ['#f25c05', '#d91604', '#f2b705', '#ff4500'];
+                this.color = coresFogo[Math.floor(Math.random() * coresFogo.length)];
+            }
+            update() {
+                this.y -= this.speedY;
+                this.x += this.speedX;
+                
+                if (this.y < fxCanvas.height / 2) {
+                    this.opacity -= 0.008; // Desaparece mais suavemente
+                }
+                if (this.y < 0 || this.opacity <= 0) {
+                    this.y = fxCanvas.height + 20;
+                    this.x = Math.random() * fxCanvas.width;
+                    this.opacity = Math.random() * 0.8 + 0.2;
+                }
+            }
+            draw() {
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = this.color;
+            }
+        }
+
+        function initEmbers() {
+            for (let i = 0; i < 90; i++) fireParticles.push(new Ember());
+        }
+
+        function renderFrame() {
+            ctx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+            for (let ember of fireParticles) {
+                ember.update();
+                ember.draw();
+            }
+            requestAnimationFrame(renderFrame);
+        }
+
+        initEmbers();
+        renderFrame();
+
+        /**
+         * -------------------------------------------------------------
+         * MÓDULO 2: CONTROLADOR LÓGICO DA LOJA (SINGLETON)
+         * -------------------------------------------------------------
+         */
+        const sysStore = {
+            config: {
+                whatsappNumber: "5571993496856",
+                metodoPagamento: "PIX",
+                codigosAtivos: {
+                    "Spartaborn": 0.10, // 10%
+                    "Sparta2026": 0.20  // 20%
+                }
+            },
+            estado: {
+                produtoAtual: "",
+                precoBase: 0,
+                precoCalculado: 0,
+                cupomAplicado: "Nenhum" // Rastreador do cupom
+            },
+            ui: {
+                modal: document.getElementById('ui-modal'),
+                steps: document.querySelectorAll('.step-container'),
+                lblNome: document.getElementById('display-nome-pacote'),
+                lblPreco: document.getElementById('display-preco-final'),
+                inpCupom: document.getElementById('input-cupom'),
+                msgCupom: document.getElementById('msg-retorno-cupom'),
+                inpNick: document.getElementById('input-nickname'),
+                btnConcluir: document.getElementById('btn-concluir')
+            },
+
+            formatarBRL(valor) {
+                return "R$ " + valor.toFixed(2).replace('.', ',');
+            },
+
+            iniciarFluxo(nome, preco) {
+                this.estado.produtoAtual = nome;
+                this.estado.precoBase = preco;
+                this.estado.precoCalculado = preco;
+                this.estado.cupomAplicado = "Nenhum"; // Reset do cupom ao abrir novo produto
+
+                // Reset da UI
+                this.ui.lblNome.innerText = nome;
+                this.ui.lblPreco.innerText = this.formatarBRL(preco);
+                this.ui.inpCupom.value = "";
+                this.ui.msgCupom.innerText = "";
+                this.ui.inpNick.value = "";
+                
+                this.ui.modal.classList.add('active');
+                this.navegarPara(1);
+            },
+
+            encerrarFluxo() {
+                this.ui.modal.classList.remove('active');
+            },
+
+            navegarPara(passoNum) {
+                this.ui.steps.forEach(el => el.classList.remove('active'));
+                document.getElementById(`view-step-${passoNum}`).classList.add('active');
+            },
+
+            processarCupom() {
+                const codInserido = this.ui.inpCupom.value.trim();
+                const desconto = this.config.codigosAtivos[codInserido];
+
+                if (desconto) {
+                    this.estado.precoCalculado = this.estado.precoBase * (1 - desconto);
+                    this.estado.cupomAplicado = codInserido; // Salva o cupom válido
+                    this.ui.msgCupom.innerText = `[ OVERRIDE ACEITO: -${desconto * 100}% ]`;
+                    this.ui.msgCupom.style.color = "var(--color-secondary)";
+                } else {
+                    this.estado.precoCalculado = this.estado.precoBase;
+                    this.estado.cupomAplicado = "Nenhum"; // Reseta se errar o cupom
+                    this.ui.msgCupom.innerText = "[ ERRO: CÓDIGO INEXISTENTE ]";
+                    this.ui.msgCupom.style.color = "var(--color-primary)";
+                }
+                
+                this.ui.lblPreco.innerText = this.formatarBRL(this.estado.precoCalculado);
+            },
+
+            gerarContrato() {
+                const nickPlayer = this.ui.inpNick.value.trim();
+                
+                if (!nickPlayer) {
+                    this.ui.inpNick.focus();
+                    alert("Atenção: A identificação do seu nickname é obrigatória para gerar o contrato.");
+                    return;
+                }
+
+                // Geração da String Final Atualizada com Valor e Cupom
+                const valorFormatado = this.formatarBRL(this.estado.precoCalculado);
+                const strFinal = `[${this.estado.produtoAtual}] [${this.config.metodoPagamento}] [${nickPlayer}] [Valor Final: ${valorFormatado}] [Cupom: ${this.estado.cupomAplicado}]`;
+                
+                // Feedback de UI antes do redirecionamento
+                this.ui.btnConcluir.innerText = "Sincronizando Sistema...";
+                
+                navigator.clipboard.writeText(strFinal).then(() => {
+                    this.ui.btnConcluir.style.background = "var(--color-accent)";
+                    this.ui.btnConcluir.style.color = "#000";
+                    this.ui.btnConcluir.innerText = "Contrato Copiado! Redirecionando...";
+                    
+                    setTimeout(() => {
+                        const zapUrl = `https://wa.me/${this.config.whatsappNumber}?text=${encodeURIComponent(strFinal)}`;
+                        window.open(zapUrl, '_blank');
+                        this.encerrarFluxo();
+                        
+                        // Reset visual do botão para uso posterior
+                        setTimeout(() => {
+                            this.ui.btnConcluir.innerText = "Confirmar e Redirecionar via WhatsApp";
+                            this.ui.btnConcluir.style.background = "var(--color-primary)";
+                            this.ui.btnConcluir.style.color = "var(--text-high)";
+                        }, 500);
+                    }, 800);
+                }).catch(() => {
+                    alert("Sistema bloqueou a cópia automática. Libere o acesso à área de transferência do seu navegador.");
+                });
+            }
+        };
+    </script>
+</body>
+</html>
