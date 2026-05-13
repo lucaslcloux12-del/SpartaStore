@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sparta Store v1 | Sistema de Aquisição</title>
+    <title>Sparta Store v2 | Sistema de Aquisição</title>
     
     <!-- Fontes de Alta Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -74,17 +74,17 @@
         }
 
         /* =========================================
-           3. ESTRUTURA DE NAVEGAÇÃO (TOP BAR)
+           3. NAVEGAÇÃO & SIDEBAR (MENU LATERAL)
            ========================================= */
         .top-nav {
             width: 100%;
             height: 80px;
             display: flex;
-            justify-content: flex-end; /* Alinha o conteúdo à direita */
+            justify-content: space-between; /* Hamburger na esquerda, Logo na direita */
             align-items: center;
-            padding: 0 50px;
+            padding: 0 40px;
             position: relative;
-            z-index: 10;
+            z-index: 100;
             border-bottom: 1px solid rgba(217, 22, 4, 0.2);
             background: linear-gradient(180deg, rgba(10, 1, 0, 0.8) 0%, transparent 100%);
         }
@@ -97,6 +97,19 @@
             width: 30%;
             height: 1px;
             background: linear-gradient(90deg, transparent, var(--color-primary), var(--color-accent));
+        }
+
+        .menu-toggle {
+            font-size: 2rem;
+            color: var(--color-accent);
+            cursor: pointer;
+            transition: var(--transition-fast);
+            text-shadow: 0 0 10px rgba(242, 183, 5, 0.4);
+        }
+
+        .menu-toggle:hover {
+            color: var(--color-primary);
+            text-shadow: 0 0 15px rgba(217, 22, 4, 0.6);
         }
 
         .brand-container {
@@ -126,16 +139,127 @@
             text-transform: uppercase;
         }
 
+        /* Menu Lateral (Sidebar) */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0; left: -320px;
+            width: 320px; height: 100vh;
+            background: var(--bg-modal);
+            border-right: 2px solid var(--color-primary);
+            z-index: 1000;
+            transition: left 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            padding: 80px 30px 30px;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.8);
+        }
+        .sidebar.active {
+            left: 0;
+        }
+        
+        .sidebar-close {
+            position: absolute;
+            top: 25px; right: 25px;
+            font-size: 1.8rem;
+            color: var(--text-medium);
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+        .sidebar-close:hover { color: var(--color-primary); }
+
+        .sidebar-title {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            color: var(--text-medium);
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(242, 92, 5, 0.2);
+            padding-bottom: 10px;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .menu-btn {
+            background: transparent;
+            color: var(--text-high);
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            text-align: left;
+            padding: 15px 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+            clip-path: var(--clip-btn);
+            cursor: pointer;
+            transition: var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+        }
+        .menu-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; height: 100%; width: 4px;
+            background: transparent;
+            transition: var(--transition-fast);
+        }
+        .menu-btn:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(242, 92, 5, 0.3);
+        }
+        .menu-btn.active {
+            background: rgba(217, 22, 4, 0.1);
+            border-color: var(--color-primary);
+            color: var(--color-accent);
+        }
+        .menu-btn.active::before {
+            background: var(--color-accent);
+        }
+
         /* =========================================
-           4. GRID DE PRODUTOS & CARDS
+           4. ABAS E GRID DE PRODUTOS
            ========================================= */
         .store-container {
             flex: 1;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* Permite rolar se tiver muito item */
             width: 100%;
-            padding: 60px 20px;
+            padding: 50px 20px;
+        }
+
+        .tab-content {
+            display: none; /* Escondido por padrão */
+            width: 100%;
+            max-width: 1200px;
+            animation: fadeIn 0.4s forwards;
+        }
+        .tab-content.active {
+            display: block; /* Visível quando ativo */
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            color: var(--text-high);
+            text-align: center;
+            margin-bottom: 40px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(217, 22, 4, 0.3);
         }
 
         .product-grid {
@@ -143,7 +267,6 @@
             grid-template-columns: repeat(auto-fit, minmax(320px, 350px));
             gap: 40px;
             width: 100%;
-            max-width: 1200px;
             justify-content: center;
             z-index: 1;
         }
@@ -156,7 +279,7 @@
             display: flex;
             flex-direction: column;
             padding: 35px 30px;
-            min-height: 480px; /* Garante altura uniforme */
+            min-height: 480px; 
             transition: var(--transition-smooth);
             position: relative;
             opacity: 0;
@@ -166,8 +289,8 @@
 
         /* Delay em cascata na animação de entrada */
         .product-card:nth-child(1) { animation-delay: 0.1s; }
-        .product-card:nth-child(2) { animation-delay: 0.25s; }
-        .product-card:nth-child(3) { animation-delay: 0.4s; }
+        .product-card:nth-child(2) { animation-delay: 0.2s; }
+        .product-card:nth-child(3) { animation-delay: 0.3s; }
 
         .product-card::before {
             content: '';
@@ -185,13 +308,12 @@
             box-shadow: 0 15px 35px rgba(242, 92, 5, 0.15);
         }
 
-        /* Divisão Interna do Card para Organização Perfeita */
         .card-inner {
             position: relative;
             z-index: 1;
             display: flex;
             flex-direction: column;
-            height: 100%; /* Ocupa todo o espaço para o flexbox empurrar o footer */
+            height: 100%;
         }
 
         .card-header {
@@ -225,7 +347,7 @@
 
         .card-body {
             text-align: center;
-            flex-grow: 1; /* Ocupa o espaço vazio empurrando o footer para baixo */
+            flex-grow: 1;
         }
 
         .card-desc {
@@ -246,6 +368,41 @@
             color: var(--color-accent);
             margin-bottom: 25px;
             text-shadow: 0 0 15px rgba(242, 183, 5, 0.2);
+        }
+
+        /* Estilo Específico para Footer de Assinaturas (Dois Botões) */
+        .sub-options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        .sub-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(242, 92, 5, 0.1);
+            padding: 10px 15px;
+            clip-path: var(--clip-btn);
+        }
+
+        .sub-info {
+            text-align: left;
+        }
+        .sub-type {
+            font-size: 0.8rem;
+            color: var(--text-medium);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: block;
+        }
+        .sub-price {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--color-accent);
         }
 
         /* =========================================
@@ -286,6 +443,14 @@
 
         .btn-action:hover::before { left: 100%; }
 
+        /* Botão Pequeno para Assinaturas */
+        .btn-small {
+            width: auto;
+            padding: 10px 20px;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
         .btn-solid {
             background: var(--color-primary);
             color: var(--text-high);
@@ -307,7 +472,7 @@
             background: rgba(2, 0, 0, 0.85);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            z-index: 1000;
+            z-index: 2000;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -350,7 +515,6 @@
 
         .btn-close:hover { color: var(--color-primary); }
 
-        /* Rastreador de Progresso do Modal */
         .modal-tracker {
             font-size: 0.8rem;
             color: var(--color-secondary);
@@ -380,7 +544,6 @@
             letter-spacing: 1px;
         }
 
-        /* Displays de Dados no Modal */
         .data-display {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.05);
@@ -412,7 +575,6 @@
             text-shadow: 0 0 15px rgba(242, 183, 5, 0.1);
         }
 
-        /* Seção do Terminal (Desconto) */
         .terminal-group {
             display: flex;
             gap: 10px;
@@ -459,7 +621,6 @@
             letter-spacing: 1px;
         }
 
-        /* Formulário Flutuante Padrão */
         .form-group {
             position: relative;
             margin-bottom: 35px;
@@ -545,73 +706,193 @@
     <!-- LAYER 0: ENGINE GRÁFICA DE PARTÍCULAS -->
     <canvas id="fx-canvas"></canvas>
 
+    <!-- MENU LATERAL (SIDEBAR) & OVERLAY -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="sysUI.toggleSidebar()"></div>
+    <aside class="sidebar" id="sidebar">
+        <span class="sidebar-close" onclick="sysUI.toggleSidebar()">&#10005;</span>
+        <div class="sidebar-title">MENU DE ACESSO</div>
+        <div class="sidebar-menu">
+            <button class="menu-btn active" onclick="sysUI.switchTab('tab-pacotes', this)">&#9876; Pacotes da Loja</button>
+            <button class="menu-btn" onclick="sysUI.switchTab('tab-assinaturas', this)">&#10026; Assinaturas VIP</button>
+        </div>
+    </aside>
+
     <!-- LAYER 1: BARRA DE NAVEGAÇÃO SUPERIOR -->
     <nav class="top-nav">
+        <div class="menu-toggle" onclick="sysUI.toggleSidebar()">&#9776;</div>
         <div class="brand-container">
             <span class="brand-highlight">SPARTA</span>
-            <span class="brand-subtext">Store v1</span>
+            <span class="brand-subtext">Store v2</span>
         </div>
     </nav>
 
-    <!-- LAYER 2: GRID DE EXIBIÇÃO DE PRODUTOS -->
+    <!-- LAYER 2: ÁREA DE CONTEÚDO (ABAS) -->
     <main class="store-container">
-        <section class="product-grid">
-            
-            <!-- PRODUTO: PACK 1 -->
-            <article class="product-card">
-                <div class="card-inner">
-                    <header class="card-header">
-                        <div class="icon-wrapper">&#10022; &#9876;</div>
-                        <h2 class="card-title">Pack 1</h2>
-                    </header>
-                    <div class="card-divider"></div>
-                    <div class="card-body">
-                        <p class="card-desc">Full Diamond<br>+ Enchanted Golden Apple.</p>
+        
+        <!-- ABA 1: PACOTES NORMAIS -->
+        <section id="tab-pacotes" class="tab-content active">
+            <h2 class="section-title">PACOTES DE ITENS</h2>
+            <div class="product-grid">
+                <!-- PRODUTO: PACK 1 -->
+                <article class="product-card">
+                    <div class="card-inner">
+                        <header class="card-header">
+                            <div class="icon-wrapper">&#10022; &#9876;</div>
+                            <h2 class="card-title">Pack 1</h2>
+                        </header>
+                        <div class="card-divider"></div>
+                        <div class="card-body">
+                            <p class="card-desc">Full Diamond<br>+ Enchanted Golden Apple.</p>
+                        </div>
+                        <footer class="card-footer">
+                            <div class="price-tag">R$ 4,50</div>
+                            <button class="btn-action" onclick="sysStore.iniciarFluxo('Pack 1', 4.50)">Inicializar</button>
+                        </footer>
                     </div>
-                    <footer class="card-footer">
-                        <div class="price-tag">R$ 4,50</div>
-                        <button class="btn-action" onclick="sysStore.iniciarFluxo('Pack 1', 4.50)">Inicializar</button>
-                    </footer>
-                </div>
-            </article>
+                </article>
 
-            <!-- PRODUTO: PACK 2 -->
-            <article class="product-card">
-                <div class="card-inner">
-                    <header class="card-header">
-                        <div class="icon-wrapper">&#10022; &#9876; &#10022;</div>
-                        <h2 class="card-title">Pack 2</h2>
-                    </header>
-                    <div class="card-divider"></div>
-                    <div class="card-body">
-                        <p class="card-desc">Full Netherite<br>+ Enchanted Golden Apple.</p>
+                <!-- PRODUTO: PACK 2 -->
+                <article class="product-card">
+                    <div class="card-inner">
+                        <header class="card-header">
+                            <div class="icon-wrapper">&#10022; &#9876; &#10022;</div>
+                            <h2 class="card-title">Pack 2</h2>
+                        </header>
+                        <div class="card-divider"></div>
+                        <div class="card-body">
+                            <p class="card-desc">Full Netherite<br>+ Enchanted Golden Apple.</p>
+                        </div>
+                        <footer class="card-footer">
+                            <div class="price-tag">R$ 7,99</div>
+                            <button class="btn-action" onclick="sysStore.iniciarFluxo('Pack 2', 7.99)">Ascensão</button>
+                        </footer>
                     </div>
-                    <footer class="card-footer">
-                        <div class="price-tag">R$ 7,99</div>
-                        <button class="btn-action" onclick="sysStore.iniciarFluxo('Pack 2', 7.99)">Ascensão</button>
-                    </footer>
-                </div>
-            </article>
+                </article>
 
-            <!-- PRODUTO: PACK 3 -->
-            <article class="product-card">
-                <div class="card-inner">
-                    <header class="card-header">
-                        <div class="icon-wrapper">&#9889; &#8734; &#9889;</div>
-                        <h2 class="card-title">Pack 3</h2>
-                    </header>
-                    <div class="card-divider"></div>
-                    <div class="card-body">
-                        <p class="card-desc">15 Segundos no Modo Criativo Absoluto.</p>
+                <!-- PRODUTO: PACK 3 -->
+                <article class="product-card">
+                    <div class="card-inner">
+                        <header class="card-header">
+                            <div class="icon-wrapper">&#9889; &#8734; &#9889;</div>
+                            <h2 class="card-title">Pack 3</h2>
+                        </header>
+                        <div class="card-divider"></div>
+                        <div class="card-body">
+                            <p class="card-desc">15 Segundos no Modo Criativo Absoluto.</p>
+                        </div>
+                        <footer class="card-footer">
+                            <div class="price-tag">R$ 18,99</div>
+                            <button class="btn-action" onclick="sysStore.iniciarFluxo('Pack 3', 18.99)">Onipotência</button>
+                        </footer>
                     </div>
-                    <footer class="card-footer">
-                        <div class="price-tag">R$ 18,99</div>
-                        <button class="btn-action" onclick="sysStore.iniciarFluxo('Pack 3', 18.99)">Onipotência</button>
-                    </footer>
-                </div>
-            </article>
-
+                </article>
+            </div>
         </section>
+
+        <!-- ABA 2: ASSINATURAS -->
+        <section id="tab-assinaturas" class="tab-content">
+            <h2 class="section-title">PLANOS DE ASSINATURA</h2>
+            <div class="product-grid">
+                
+                <!-- PLANO: VIP -->
+                <article class="product-card">
+                    <div class="card-inner">
+                        <header class="card-header">
+                            <div class="icon-wrapper">&#9813;</div>
+                            <h2 class="card-title">VIP</h2>
+                        </header>
+                        <div class="card-divider"></div>
+                        <div class="card-body">
+                            <p class="card-desc">Acesso a kits exclusivos e tag especial no chat do servidor.</p>
+                        </div>
+                        <footer class="card-footer">
+                            <div class="sub-options-container">
+                                <div class="sub-row">
+                                    <div class="sub-info">
+                                        <span class="sub-type">Mensal</span>
+                                        <span class="sub-price">R$ 4,99</span>
+                                    </div>
+                                    <button class="btn-action btn-small" onclick="sysStore.iniciarFluxo('Assinatura VIP (Mensal)', 4.99)">Assinar</button>
+                                </div>
+                                <div class="sub-row">
+                                    <div class="sub-info">
+                                        <span class="sub-type">Permanente</span>
+                                        <span class="sub-price">R$ 12,99</span>
+                                    </div>
+                                    <button class="btn-action btn-small" onclick="sysStore.iniciarFluxo('Assinatura VIP (Permanente)', 12.99)">Comprar</button>
+                                </div>
+                            </div>
+                        </footer>
+                    </div>
+                </article>
+
+                <!-- PLANO: ELITE -->
+                <article class="product-card">
+                    <div class="card-inner">
+                        <header class="card-header">
+                            <div class="icon-wrapper">&#9812;</div>
+                            <h2 class="card-title">ELITE</h2>
+                        </header>
+                        <div class="card-divider"></div>
+                        <div class="card-body">
+                            <p class="card-desc">Todos os benefícios VIP + comandos exclusivos de teletransporte.</p>
+                        </div>
+                        <footer class="card-footer">
+                            <div class="sub-options-container">
+                                <div class="sub-row">
+                                    <div class="sub-info">
+                                        <span class="sub-type">Mensal</span>
+                                        <span class="sub-price">R$ 9,99</span>
+                                    </div>
+                                    <button class="btn-action btn-small" onclick="sysStore.iniciarFluxo('Assinatura ELITE (Mensal)', 9.99)">Assinar</button>
+                                </div>
+                                <div class="sub-row">
+                                    <div class="sub-info">
+                                        <span class="sub-type">Permanente</span>
+                                        <span class="sub-price">R$ 19,99</span>
+                                    </div>
+                                    <button class="btn-action btn-small" onclick="sysStore.iniciarFluxo('Assinatura ELITE (Permanente)', 19.99)">Comprar</button>
+                                </div>
+                            </div>
+                        </footer>
+                    </div>
+                </article>
+
+                <!-- PLANO: SPARTA + -->
+                <article class="product-card">
+                    <div class="card-inner">
+                        <header class="card-header">
+                            <div class="icon-wrapper">&#9733; &#9733; &#9733;</div>
+                            <h2 class="card-title">SPARTA +</h2>
+                        </header>
+                        <div class="card-divider"></div>
+                        <div class="card-body">
+                            <p class="card-desc">Benefícios Supremos. Destaque global, kits lendários e prioridade.</p>
+                        </div>
+                        <footer class="card-footer">
+                            <div class="sub-options-container">
+                                <div class="sub-row">
+                                    <div class="sub-info">
+                                        <span class="sub-type">Mensal</span>
+                                        <span class="sub-price">R$ 19,99</span>
+                                    </div>
+                                    <button class="btn-action btn-small" onclick="sysStore.iniciarFluxo('Assinatura SPARTA+ (Mensal)', 19.99)">Assinar</button>
+                                </div>
+                                <div class="sub-row">
+                                    <div class="sub-info">
+                                        <span class="sub-type">Permanente</span>
+                                        <span class="sub-price">R$ 31,99</span>
+                                    </div>
+                                    <button class="btn-action btn-small" onclick="sysStore.iniciarFluxo('Assinatura SPARTA+ (Permanente)', 31.99)">Comprar</button>
+                                </div>
+                            </div>
+                        </footer>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
     </main>
 
     <!-- LAYER 3: INTERFACE DE CHECKOUT (MODAL) -->
@@ -672,6 +953,49 @@
     <script>
         /**
          * -------------------------------------------------------------
+         * MÓDULO 0: INTERFACE & NAVEGAÇÃO (TABS E SIDEBAR)
+         * -------------------------------------------------------------
+         */
+        const sysUI = {
+            sidebar: document.getElementById('sidebar'),
+            overlay: document.getElementById('sidebar-overlay'),
+            
+            toggleSidebar() {
+                this.sidebar.classList.toggle('active');
+                this.overlay.classList.toggle('active');
+            },
+
+            switchTab(tabId, btnElement) {
+                // Remove classe active de todas as abas
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                // Remove classe active de todos os botões do menu
+                document.querySelectorAll('.menu-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+
+                // Ativa a aba e o botão selecionados
+                document.getElementById(tabId).classList.add('active');
+                if(btnElement) btnElement.classList.add('active');
+
+                // Fecha a sidebar em telas menores após clicar
+                this.sidebar.classList.remove('active');
+                this.overlay.classList.remove('active');
+                
+                // Força reflow para reiniciar animações dos cards
+                const cards = document.querySelectorAll(`#${tabId} .product-card`);
+                cards.forEach(card => {
+                    card.style.animation = 'none';
+                    card.offsetHeight; /* trigger reflow */
+                    card.style.animation = null; 
+                });
+            }
+        };
+
+        /**
+         * -------------------------------------------------------------
          * MÓDULO 1: ENGINE DE PARTÍCULAS (RENDERIZAÇÃO DE FOGO)
          * -------------------------------------------------------------
          */
@@ -703,7 +1027,7 @@
                 this.x += this.speedX;
                 
                 if (this.y < fxCanvas.height / 2) {
-                    this.opacity -= 0.008; // Desaparece mais suavemente
+                    this.opacity -= 0.008;
                 }
                 if (this.y < 0 || this.opacity <= 0) {
                     this.y = fxCanvas.height + 20;
@@ -740,7 +1064,7 @@
 
         /**
          * -------------------------------------------------------------
-         * MÓDULO 2: CONTROLADOR LÓGICO DA LOJA (SINGLETON)
+         * MÓDULO 2: CONTROLADOR LÓGICO DA LOJA
          * -------------------------------------------------------------
          */
         const sysStore = {
@@ -756,7 +1080,7 @@
                 produtoAtual: "",
                 precoBase: 0,
                 precoCalculado: 0,
-                cupomAplicado: "Nenhum" // Rastreador do cupom
+                cupomAplicado: "Nenhum"
             },
             ui: {
                 modal: document.getElementById('ui-modal'),
@@ -777,9 +1101,8 @@
                 this.estado.produtoAtual = nome;
                 this.estado.precoBase = preco;
                 this.estado.precoCalculado = preco;
-                this.estado.cupomAplicado = "Nenhum"; // Reset do cupom ao abrir novo produto
+                this.estado.cupomAplicado = "Nenhum";
 
-                // Reset da UI
                 this.ui.lblNome.innerText = nome;
                 this.ui.lblPreco.innerText = this.formatarBRL(preco);
                 this.ui.inpCupom.value = "";
@@ -805,12 +1128,12 @@
 
                 if (desconto) {
                     this.estado.precoCalculado = this.estado.precoBase * (1 - desconto);
-                    this.estado.cupomAplicado = codInserido; // Salva o cupom válido
+                    this.estado.cupomAplicado = codInserido;
                     this.ui.msgCupom.innerText = `[ OVERRIDE ACEITO: -${desconto * 100}% ]`;
                     this.ui.msgCupom.style.color = "var(--color-secondary)";
                 } else {
                     this.estado.precoCalculado = this.estado.precoBase;
-                    this.estado.cupomAplicado = "Nenhum"; // Reseta se errar o cupom
+                    this.estado.cupomAplicado = "Nenhum";
                     this.ui.msgCupom.innerText = "[ ERRO: CÓDIGO INEXISTENTE ]";
                     this.ui.msgCupom.style.color = "var(--color-primary)";
                 }
@@ -827,11 +1150,9 @@
                     return;
                 }
 
-                // Geração da String Final Atualizada com Valor e Cupom
                 const valorFormatado = this.formatarBRL(this.estado.precoCalculado);
                 const strFinal = `[${this.estado.produtoAtual}] [${this.config.metodoPagamento}] [${nickPlayer}] [Valor Final: ${valorFormatado}] [Cupom: ${this.estado.cupomAplicado}]`;
                 
-                // Feedback de UI antes do redirecionamento
                 this.ui.btnConcluir.innerText = "Sincronizando Sistema...";
                 
                 navigator.clipboard.writeText(strFinal).then(() => {
@@ -844,7 +1165,6 @@
                         window.open(zapUrl, '_blank');
                         this.encerrarFluxo();
                         
-                        // Reset visual do botão para uso posterior
                         setTimeout(() => {
                             this.ui.btnConcluir.innerText = "Confirmar e Redirecionar via WhatsApp";
                             this.ui.btnConcluir.style.background = "var(--color-primary)";
@@ -852,7 +1172,7 @@
                         }, 500);
                     }, 800);
                 }).catch(() => {
-                    alert("Sistema bloqueou a cópia automática. Libere o acesso à área de transferência do seu navegador.");
+                    alert("Sistema bloqueou a cópia automática. Libere o acesso à área de transferência.");
                 });
             }
         };
