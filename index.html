@@ -80,7 +80,7 @@
             width: 100%;
             height: 80px;
             display: flex;
-            justify-content: space-between; /* Hamburger na esquerda, Logo na direita */
+            justify-content: space-between;
             align-items: center;
             padding: 0 40px;
             position: relative;
@@ -99,6 +99,12 @@
             background: linear-gradient(90deg, transparent, var(--color-primary), var(--color-accent));
         }
 
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
         .menu-toggle {
             font-size: 2rem;
             color: var(--color-accent);
@@ -110,6 +116,28 @@
         .menu-toggle:hover {
             color: var(--color-primary);
             text-shadow: 0 0 15px rgba(217, 22, 4, 0.6);
+        }
+
+        /* Ícone de Rede Social no Topo */
+        .social-icon {
+            color: var(--text-medium);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: var(--transition-fast);
+        }
+
+        .social-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
+        .social-icon:hover {
+            color: var(--color-accent);
+            filter: drop-shadow(0 0 10px rgba(242, 183, 5, 0.6));
+            transform: scale(1.1);
         }
 
         .brand-container {
@@ -209,6 +237,8 @@
             transition: var(--transition-fast);
             position: relative;
             overflow: hidden;
+            text-decoration: none; /* Para links externos */
+            display: block;
         }
         .menu-btn::before {
             content: '';
@@ -220,6 +250,7 @@
         .menu-btn:hover {
             background: rgba(255,255,255,0.05);
             border-color: rgba(242, 92, 5, 0.3);
+            color: var(--text-high);
         }
         .menu-btn.active {
             background: rgba(217, 22, 4, 0.1);
@@ -237,19 +268,19 @@
             flex: 1;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* Permite rolar se tiver muito item */
+            align-items: flex-start;
             width: 100%;
             padding: 50px 20px;
         }
 
         .tab-content {
-            display: none; /* Escondido por padrão */
+            display: none;
             width: 100%;
             max-width: 1200px;
             animation: fadeIn 0.4s forwards;
         }
         .tab-content.active {
-            display: block; /* Visível quando ativo */
+            display: block;
         }
 
         .section-title {
@@ -287,7 +318,6 @@
             animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* Delay em cascata na animação de entrada */
         .product-card:nth-child(1) { animation-delay: 0.1s; }
         .product-card:nth-child(2) { animation-delay: 0.2s; }
         .product-card:nth-child(3) { animation-delay: 0.3s; }
@@ -370,7 +400,6 @@
             text-shadow: 0 0 15px rgba(242, 183, 5, 0.2);
         }
 
-        /* Estilo Específico para Footer de Assinaturas (Dois Botões) */
         .sub-options-container {
             display: flex;
             flex-direction: column;
@@ -388,9 +417,8 @@
             clip-path: var(--clip-btn);
         }
 
-        .sub-info {
-            text-align: left;
-        }
+        .sub-info { text-align: left; }
+        
         .sub-type {
             font-size: 0.8rem;
             color: var(--text-medium);
@@ -398,6 +426,7 @@
             letter-spacing: 1px;
             display: block;
         }
+        
         .sub-price {
             font-family: var(--font-display);
             font-size: 1.2rem;
@@ -443,7 +472,6 @@
 
         .btn-action:hover::before { left: 100%; }
 
-        /* Botão Pequeno para Assinaturas */
         .btn-small {
             width: auto;
             padding: 10px 20px;
@@ -714,12 +742,25 @@
         <div class="sidebar-menu">
             <button class="menu-btn active" onclick="sysUI.switchTab('tab-pacotes', this)">&#9876; Pacotes da Loja</button>
             <button class="menu-btn" onclick="sysUI.switchTab('tab-assinaturas', this)">&#10026; Assinaturas VIP</button>
+            
+            <!-- Link do TikTok no Menu Lateral -->
+            <a href="https://www.tiktok.com/@sparta_terradeninguemmc?_r=1&_t=ZS-96Jj1geTOV7" target="_blank" class="menu-btn">&#9835; Nosso TikTok</a>
         </div>
     </aside>
 
     <!-- LAYER 1: BARRA DE NAVEGAÇÃO SUPERIOR -->
     <nav class="top-nav">
-        <div class="menu-toggle" onclick="sysUI.toggleSidebar()">&#9776;</div>
+        <!-- Agrupamento do Botão Menu e Ícone do TikTok -->
+        <div class="nav-left">
+            <div class="menu-toggle" onclick="sysUI.toggleSidebar()">&#9776;</div>
+            <a href="https://www.tiktok.com/@sparta_terradeninguemmc?_r=1&_t=ZS-96Jj1geTOV7" target="_blank" class="social-icon" title="Siga nosso TikTok">
+                <!-- Ícone SVG do TikTok -->
+                <svg viewBox="0 0 448 512">
+                    <path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"/>
+                </svg>
+            </a>
+        </div>
+
         <div class="brand-container">
             <span class="brand-highlight">SPARTA</span>
             <span class="brand-subtext">Store v2</span>
@@ -972,7 +1013,7 @@
                 });
                 
                 // Remove classe active de todos os botões do menu
-                document.querySelectorAll('.menu-btn').forEach(btn => {
+                document.querySelectorAll('.sidebar-menu .menu-btn:not([target="_blank"])').forEach(btn => {
                     btn.classList.remove('active');
                 });
 
